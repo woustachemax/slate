@@ -1,31 +1,36 @@
+declare global {
+  namespace Express {
+    interface Request {
+      userId: string;
+    }
+  }
+}
+//couldnt for the life of me export types and i refuse to use ts ignore so herewe go
+
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import {JWT_SECRET} from '@repo/backend-common/config'
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { JWT_SECRET } from "@repo/backend-common/config";
 
-export async function middleware(req: Request, res: Response, next: NextFunction){
+if (!JWT_SECRET) throw new Error("JWT_SECRET is not defined");
 
+interface DecodedToken extends JwtPayload {
+  id: string;
+  email: string;
+  username: string;
+}
 
-    if(!JWT_SECRET) throw new Error("JWT_SECRET is not defined");
+export async function middleware(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader?.split(" ")[1];
 
+  if (!token) return res.sendStatus(401);
 
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    
-    if(token == null) return res.sendStatus(401);
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET as string) as DecodedToken;
 
-    if(process.env.JWT_SECRET == undefined) throw new Error("JWT_SECRET is not defined");
-
-   const decoded =  jwt.verify(token, JWT_SECRET, (err)=>{
-        if(err) return res.sendStatus(403);
-        next();
-   })
-
-   if(decoded == null) return res.sendStatus(403);
-
-   if(decoded){
-    //@ts-ignore
-    req.userId = decoded.userId;
+    req.userId = decoded.id;
     next();
-   }
-
+  } catch (err) {
+    return res.sendStatus(403);
+  }
 }

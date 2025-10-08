@@ -4,22 +4,27 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -b",
-    "dev": "node dist/index.js",
-    "start": "npm run build && npm run start"
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
+  "dependencies": {
+    "@repo/backend-common": "workspace:*",
+    "@repo/common": "workspace:*",
+    "@repo/database": "workspace:*",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.0",
+    "jsonwebtoken": "^9.0.2"
+  },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
+    "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.3",
-    "@repo/backend-common": "workspace:*",
     "@types/jsonwebtoken": "^9.0.10",
-    "@repo/common": "workspace:*"
-  },
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "jsonwebtoken": "^9.0.2"
+    "tsx": "^4.7.0"
   }
 }
