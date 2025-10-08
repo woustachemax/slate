@@ -1,26 +1,116 @@
-import {WebSocketServer} from 'ws';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import {JWT_SECRET} from '@repo/backend-common/config'
+import { WebSocketServer } from "ws";
+import jwt from "jsonwebtoken";
+import fetch from "node-fetch";
+import { JWT_SECRET } from "@repo/backend-common/config";
+import { userStore } from "./userStorage";
+import client from "@repo/database/database";
 
-const wss = new WebSocketServer({port: 8080});
+const wss = new WebSocketServer({ port: 8080 });
 
+function checkUser(token: string) {
+  try {
+    if (!JWT_SECRET) throw new Error("JWT_SECRET is not defined");
 
-wss.on('connection', function connection(ws, request){
+    const decoded = jwt.verify(token, JWT_SECRET);
 
-    if(!JWT_SECRET) throw new Error("JWT_SECRET is not defined");
+    if (typeof decoded === "string") return null;
+    if (!decoded || !(decoded as any).id) return null;
+    return (decoded as any).id as string;
 
-    const url = request.url;
-    if(!url) return ws.close(); ;
+  } catch {
+    return null;
+  }
+}
 
-    const queryParams = new URLSearchParams(url.split('?')[1]); 
-    const token = queryParams.get('token') || '';
-    const decoded = jwt.verify(token, JWT_SECRET)
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
 
-    if(!token) return ws.close();
+type WSMessage =
+  | { action: "join_room"; roomId: string }
+  | { action: "leave_room"; roomId: string }
+  | { action: "message"; roomId: string; content: string };
 
-    if(!decoded || !(decoded as JwtPayload).userId) return ws.close();
+wss.on("connection", (ws, request) => {
+  const url = request.url;
+  if (!url) return ws.close();
 
-    ws.on('message', function message(data){
-        ws.send('pong!')
-    })
-})
+  const queryParams = new URLSearchParams(url.split("?")[1]);
+  const token = queryParams.get("token") || "";
+  const userId = checkUser(token);
+
+  if (!userId) return ws.close();
+
+  userStore.addUser({ id: userId, rooms: [], ws });
+
+  ws.on("message", async (rawData) => {
+    if (!isString(rawData)) return;
+
+    let parsed: WSMessage;
+    try {
+      parsed = JSON.parse(rawData);
+    } catch {
+      ws.send(JSON.stringify({ error: "Invalid JSON" }));
+      return;
+    }
+
+    switch (parsed.action) {
+      case "join_room":
+        try {
+          const res = await fetch(`http://localhost:3000/api/v1/room_exists?roomId=${parsed.roomId}`);
+          const data = (await res.json()) as { exists: boolean };
+
+          if (!data.exists) {
+            ws.send(JSON.stringify({ error: "Room does not exist" }));
+            return;
+          }
+
+          userStore.addRoom(userId, parsed.roomId);
+          ws.send(JSON.stringify({ message: `Joined room ${parsed.roomId}` }));
+        } catch {
+          ws.send(JSON.stringify({ error: "Failed to validate room" }));
+        }
+        break;
+
+      case "leave_room":
+        userStore.removeRoom(userId, parsed.roomId);
+        ws.send(JSON.stringify({ message: `Left room ${parsed.roomId}` }));
+        break;
+
+      case "message":
+        try {
+          const { roomId, content } = parsed;
+
+          await client.chatMessage.create({
+            data: {
+              message: content,
+              roomId,
+              adminId: userId,
+            },
+          });
+
+          const usersInRoom = userStore.getUsersInRoom(roomId);
+          usersInRoom.forEach((u) =>
+            u.ws.send(
+              JSON.stringify({
+                type: "message",
+                message: content,
+                from: userId,
+                roomId,
+              })
+            )
+          );
+        } catch (err) {
+          ws.send(JSON.stringify({ error: "Failed to save message" }));
+        }
+        break;
+
+      default:
+        ws.send(JSON.stringify({ error: "Unknown action" }));
+    }
+  });
+
+  ws.on("close", () => {
+    userStore.removeUser(userId);
+  });
+});

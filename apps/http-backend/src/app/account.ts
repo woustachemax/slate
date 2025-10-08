@@ -120,3 +120,14 @@ router.post('/room', middleware, async (req: Request, res: Response) => {
 
 })
 
+router.get('/room_exists', async (req: Request, res: Response) => {
+  const roomId = req.query.roomId as string;
+  if (!roomId) return res.status(400).json({ error: 'roomId required' });
+
+  try {
+    const room = await client.room.findUnique({ where: { id: roomId } });
+    return res.status(200).json({ exists: !!room });
+  } catch {
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
