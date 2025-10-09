@@ -10,6 +10,13 @@ const _layout = () => {
             headerShown: false,
             title: "Home"
         }}/>
+        <Stack.Screen 
+        name='Room'
+        options={{
+          headerShown: false,
+          title: "Room"
+        }}
+      />
     </Stack>
   )
 }
