@@ -1,7 +1,8 @@
 import { View, TextInput, Image,Text, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { ScrollView } from 'react-native';
-
+import { useRouter } from 'expo-router';
+import { ToastProvider, useToast } from './Toast';
 
 const LoginPage = () => {
     const [isSignedUp, setIsSignedUp] = useState(true);
@@ -12,6 +13,40 @@ const LoginPage = () => {
     const [isUserFocused, setisUserFocused] = useState(false);
     const [focused, setFocused] = useState(false);
 
+    const {show} = useToast()
+    const router=useRouter();
+
+    const handleAuth = () => {
+
+      if (!username || !password || (isSignedUp && !name)) {
+        show('*Please fill in all fields*', 'error');
+        return;
+      }
+
+      if (password.length < 6) {
+        show('*Password must be at least 6 characters*', 'error');
+        return;
+      }
+
+      if (username.length > 20) {
+        show('*Username too long, max 20 chars*', 'error');
+        return;
+      }
+
+      if (isSignedUp && name!.trim().length < 3) {
+        show('*Name must be at least 3 characters*', 'error');
+        return;
+      }
+
+      if (isSignedUp) {
+        console.log('Signing up:', { username, password, name });
+      } else {
+        console.log('Logging in:', { username, password });
+      }
+
+      router.replace('/Room');
+    };
+
 
 
   return (
@@ -19,7 +54,8 @@ const LoginPage = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"} 
       className="flex-1 bg-black"
     >
-    <ScrollView>
+    <ScrollView
+    showsVerticalScrollIndicator={false}>
     <View className=''>
       <View>
         <Image
@@ -89,8 +125,8 @@ const LoginPage = () => {
       )}
       <View className='mt-8 mx-2'>
         <TouchableOpacity className='mt-8 w-80 border border-gray-500 px-4 py-3 rounded-md bg-black outline-none transition-all duration-300 shadow-xl
-        
         active:shadow-teal-500/50 active:text-white'
+        onPress={handleAuth}
         > 
             {isSignedUp? (
                 <Text className='text-teal-200  font-serif text-bold text-center active:text-white'>
@@ -120,4 +156,12 @@ const LoginPage = () => {
   )
 }
 
-export default LoginPage
+ const WrappedLogin = ()=>{
+  return(
+  <ToastProvider>
+    <LoginPage/>
+  </ToastProvider>
+  )
+ }
+
+export default WrappedLogin

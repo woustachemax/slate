@@ -5,6 +5,7 @@ const ToastContext = createContext({ show: (msg: string, type?: "success" | "err
 
 export const useToast = () => useContext(ToastContext);
 
+
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -29,14 +30,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             opacity: fadeAnim,
             transform: [{ translateY: fadeAnim.interpolate({ inputRange: [0, 1], outputRange: [40, 0] }) }],
           }}
-          className="absolute top-10 self-center px-4 py-2 rounded-md shadow-md"
+          className="absolute bottom-10 self-center px-4 py-2 rounded-md shadow-md"
         >
           <View
             className={`px-4 py-2 rounded-2xl ${
               toast.type === "success" ? "shadow-xl shadow-green-500/50" : "shadow-xl shadow-red-500/50"
             }`}
           >
-            <Text className="text-white font-semibold">{toast.msg}</Text>
+            <Text className={`font-semibold font-serif  ${
+              toast.type == "success" ? "text-green-200 text-shadow-lg/30 text-shadow-green-500/50" : 
+              "text-red-200 text-shadow-lg/30 text-shadow-red-500/50"}`}>{toast.msg}</Text>
           </View>
         </Animated.View>
       )}

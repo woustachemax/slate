@@ -131,3 +131,23 @@ router.get('/room_exists', async (req: Request, res: Response) => {
     return res.status(500).json({ error: 'Server error' });
   }
 });
+
+router.get('/room/:slug', async (req : Request, res : Response)=>{
+    const slug = req.params.slug;
+    if(!slug) res.status(400).json({error: "Slug requires"});
+
+    try{
+        const room = await client.room.findUnique({
+            where:{
+                slug: slug
+            }
+        })
+        return res.json({room})
+    }catch(e){
+        if(e instanceof Error){
+            return res.status(403).json({message: e.message})
+        }
+        else res.status(403).json({message: "Some unknown error occured!"});
+    }
+    
+})

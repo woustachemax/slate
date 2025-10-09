@@ -17,6 +17,12 @@ const _layout = () => {
           title: "Room"
         }}
       />
+      <Stack.Screen 
+      name='chat'
+      options={{
+        headerShown: false,
+        title: "chat"
+      }}/>
     </Stack>
   )
 }
