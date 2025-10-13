@@ -4,7 +4,6 @@ dotenv.config();
 import http from 'http';
 import { WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
-import fetch from "node-fetch";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { userStore } from "./userStorage";
 import client from "@repo/database/database";
