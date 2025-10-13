@@ -6,7 +6,7 @@ import { ToastProvider, useToast } from './Toast';
 
 const RoompPage = () => {
     const [room, setroom] = useState(true);
-    const [roomName, setroomName] = useState<string>();
+    const [slug, setslug] = useState<string>();
     const [isRoomFocues, setisRoomFocused] = useState(false);
     
     const {show} = useToast()
@@ -14,12 +14,12 @@ const RoompPage = () => {
 
     const handleRooms = () => {
 
-      if (!roomName) {
+      if (!slug) {
         show('*Please Enter the Room Name*', 'error');
         return;
       }
 
-      router.replace('/chat');
+      router.replace(`/chat/${slug}`);
     };
 
 
@@ -48,8 +48,8 @@ const RoompPage = () => {
       <View className='mx-2'>
         <Text className='text-blue-200 my-2 font-bold font-serif '> Room ID </Text>
         <TextInput
-        value={roomName}
-        onChangeText={setroomName}
+        value={slug}
+        onChangeText={setslug}
         onFocus={() => setisRoomFocused(true)}
         onBlur={() => setisRoomFocused(false)}   
         autoCapitalize="none"

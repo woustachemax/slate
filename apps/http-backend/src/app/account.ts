@@ -121,33 +121,45 @@ router.post('/room', middleware, async (req: Request, res: Response) => {
 })
 
 router.get('/room_exists', async (req: Request, res: Response) => {
-  const roomId = req.query.roomId as string;
-  if (!roomId) return res.status(400).json({ error: 'roomId required' });
+  const slug = req.query.slug as string;
+  if (!slug) return res.status(400).json({ error: 'slug required' });
 
   try {
-    const room = await client.room.findUnique({ where: { id: roomId } });
+    const room = await client.room.findUnique(
+        { where: 
+            { slug } 
+        });
     return res.status(200).json({ exists: !!room });
   } catch {
     return res.status(500).json({ error: 'Server error' });
   }
 });
 
-router.get('/room/:slug', async (req : Request, res : Response)=>{
-    const slug = req.params.slug;
-    if(!slug) res.status(400).json({error: "Slug requires"});
+router.get("/room/:slug", async (req: Request, res: Response) => {
+  const slug = req.params.slug;
 
-    try{
-        const room = await client.room.findUnique({
-            where:{
-                slug: slug
-            }
-        })
-        return res.json({room})
-    }catch(e){
-        if(e instanceof Error){
-            return res.status(403).json({message: e.message})
+  if (!slug) {
+    return res.status(400).json({ error: "Slug is required" });
+  }
+
+  try {
+    const room = await client.room.findUnique({
+      where: 
+      {
+         slug 
         }
-        else res.status(403).json({message: "Some unknown error occured!"});
+    });
+
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
     }
-    
-})
+
+    return res.status(200).json({ room });
+  } catch (e) {
+    if (e instanceof Error) {
+      return res.status(500).json({ message: e.message });
+    } else {
+      return res.status(500).json({ message: "Unknown server error occurred" });
+    }
+  }
+});

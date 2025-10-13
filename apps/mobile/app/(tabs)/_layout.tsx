@@ -18,7 +18,7 @@ const _layout = () => {
         }}
       />
       <Stack.Screen 
-      name='chat'
+      name='chat/[slug]'
       options={{
         headerShown: false,
         title: "chat"
