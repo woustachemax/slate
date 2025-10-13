@@ -1,3 +1,7 @@
+import dotenv from 'dotenv'
+dotenv.config();
+
+import http from 'http';
 import { WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import fetch from "node-fetch";
@@ -5,18 +9,18 @@ import { JWT_SECRET } from "@repo/backend-common/config";
 import { userStore } from "./userStorage";
 import client from "@repo/database/database";
 
-const wss = new WebSocketServer({ port: 8080 });
+const PORT = process.env.PORT || 8080;
+
+const server = http.createServer();
+const wss = new WebSocketServer({ server });
 
 function checkUser(token: string) {
   try {
     if (!JWT_SECRET) throw new Error("JWT_SECRET is not defined");
-
     const decoded = jwt.verify(token, JWT_SECRET);
-
     if (typeof decoded === "string") return null;
     if (!decoded || !(decoded as any).id) return null;
     return (decoded as any).id as string;
-
   } catch {
     return null;
   }
@@ -57,7 +61,8 @@ wss.on("connection", (ws, request) => {
     switch (parsed.action) {
       case "join_room":
         try {
-          const res = await fetch(`http://localhost:3000/api/v1/room_exists?roomId=${parsed.roomId}`);
+          const apiUrl = process.env.HTTP_API_URL || 'http://localhost:3000';
+          const res = await fetch(`${apiUrl}/api/v1/room_exists?roomId=${parsed.roomId}`);
           const data = (await res.json()) as { exists: boolean };
 
           if (!data.exists) {
@@ -113,4 +118,8 @@ wss.on("connection", (ws, request) => {
   ws.on("close", () => {
     userStore.removeUser(userId);
   });
+});
+
+server.listen(PORT, () => {
+  console.log(`WebSocket server active on port: ${PORT}`);
 });
