@@ -5,7 +5,7 @@ import http from 'http';
 import { WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
-import { userStore } from "./userStorage";
+import { userStore } from "./userStorage.js";
 import client from "@repo/database/database";
 
 const PORT = process.env.PORT || 8080;

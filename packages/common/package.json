@@ -1,9 +1,10 @@
 {
+    "type": "module",
   "name": "@repo/common",
   "version": "1.0.0",
-  "main": "./dist/index.js",
-  "exports":{
-    "./config": "./src/common.ts"
+  "main": "./dist/common.js",
+  "exports": {
+    "./config": "./dist/common.js"
   },
   "scripts": {
     "build": "tsc -b",

@@ -1,9 +1,10 @@
 {
+    "type": "module",
   "name": "@repo/database",
   "version": "1.0.0",
   "main": "./dist/database.js",
-  "exports":{
-    "./database": "./src/database.js"
+  "exports": {
+    "./database": "./dist/database.js"
   },
   "scripts": {
     "build": "tsc -b && prisma generate",

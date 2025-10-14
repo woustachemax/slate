@@ -1,5 +1,5 @@
 import express, { Request, Response, Router } from 'express';
-import { middleware } from './middleware';
+import { middleware } from './middleware.js';
 import {JWT_SECRET} from '@repo/backend-common/config'
 import {creatUserSchema, createRoomSchema, loginUserSchema} from '@repo/common/config';
 import client from '@repo/database/database'
