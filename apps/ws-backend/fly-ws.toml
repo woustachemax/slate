@@ -1,0 +1,4 @@
+app = "backend-drawing-ws"
+
+[build]
+  dockerfile = "./Dockerfile"
